@@ -13,6 +13,7 @@ Each spike is a louder sound like a clap or in this case music segments. So when
 
 # Formula
 This is the formula that is used to translate the analog sensor value from the microphone to the corresponding LED height on the lamp 
+
 <img width="424" alt="image" src="https://user-images.githubusercontent.com/64546287/132075862-bd7e10b4-a456-4b0c-8fd1-952e0d227ce0.png">
 
 # Future Features

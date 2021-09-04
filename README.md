@@ -10,3 +10,7 @@ using an analog Microphone for an arduino you can get a rough guess about the vo
 Below is a screenshot of what the analog sesnor reads on the serial plotter:
 <img width="1161" alt="image" src="https://user-images.githubusercontent.com/64546287/131937734-52f60e93-6fb8-4416-88b4-49edb1bc4f39.png">
 Each spike is a louder sound like a clap or in this case music segments. So when you have a filthy beat drop not only can you see it in the music but you can see it in the lights. The baseline for this sensor is at around 550, I'm going to experement with subtracting that just directly so the math is easier but we will see I suppose.
+
+# Formula
+This is the formula that is used to translate the analog sensor value from the microphone to the corresponding LED height on the lamp 
+<img width="424" alt="image" src="https://user-images.githubusercontent.com/64546287/132075862-bd7e10b4-a456-4b0c-8fd1-952e0d227ce0.png">

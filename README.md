@@ -14,3 +14,7 @@ Each spike is a louder sound like a clap or in this case music segments. So when
 # Formula
 This is the formula that is used to translate the analog sensor value from the microphone to the corresponding LED height on the lamp 
 <img width="424" alt="image" src="https://user-images.githubusercontent.com/64546287/132075862-bd7e10b4-a456-4b0c-8fd1-952e0d227ce0.png">
+
+# Future Features
+Adapative leveling: This would aggregate sensor values over a period of time like 10 minutes and constantly adapt the lower and upper limits to allow for better visualization if the music gets louder or quieter. 
+Gradient Moving Rainbow Reaction: This would just simply move the gradient over time when in music reactive mode so there would be different colors at the peak and base level each mode switch

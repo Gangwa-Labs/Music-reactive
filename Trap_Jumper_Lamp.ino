@@ -7,7 +7,6 @@
 
 
 CRGB leds[NUM_LEDS];
-
 typedef struct struct_message {//matching data structure for mic side
   int a;
 } struct_message;
@@ -16,21 +15,15 @@ struct_message myData;
 
 void OnDataRecv(uint8_t * mac, uint8_t *incomingData, uint8_t len) {
   memcpy(&myData, incomingData, sizeof(myData));
-  Serial.println(myData.a);
-  fill_rainbow( leds, myData.a, 0, 255/NUM_LEDS);
+  //Serial.println(myData.a);
+  fill_rainbow( leds, myData.a, (beatsin8(1,0,255)), 255 / NUM_LEDS);
   FastLED.show();
-  EVERY_N_MILLISECONDS(10){
-    fadeToBlackBy(leds, NUM_LEDS, 64);
-    FastLED.show();
-    delay(0);
-  }
 }
-
 void setup() {
   // put your setup code here, to run once:
   //Add LEDs
-  FastLED.addLeds<NEOPIXEL, DATA_PIN>(leds, NUM_LEDS);
-  Serial.begin(115200);
+  FastLED.addLeds<WS2812B, DATA_PIN, GRB>(leds, NUM_LEDS);
+  //Serial.begin(115200);
   FastLED.setBrightness(65);
   WiFi.mode(WIFI_STA);//sets wifi mode as a station
   // Init ESP-NOW
@@ -43,5 +36,8 @@ void setup() {
 }
 
 void loop() {
-  // put your main code here, to run repeatedly: 
+  // put your main code here, to run repeatedly:
+  EVERY_N_MILLISECONDS(10) {
+    fadeToBlackBy(leds, NUM_LEDS, 48);
+  }
 }

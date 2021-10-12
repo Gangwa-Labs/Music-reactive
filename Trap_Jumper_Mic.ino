@@ -3,52 +3,63 @@
 
 //Parameters
 const int micPin  = A0;
-const int bottomLimit = 550;
-const int topLimit = 575;
+const int buttonPin = 16;
+const int bottomLimit = 0;
+const int topLimit = 130;
+const int NUM_LEDS = 144;
 
-uint8_t broadcastAddress[] = {0x30, 0x83, 0x98, 0x82, 0xe8, 0x12}; //replace with the MAC addresses of the lamps (microcontrollers attached the lamps)
+uint8_t broadcastAddress1[] = {0xc4, 0x5b, 0xbe, 0x63, 0x4f, 0xe9}; //replace with the MAC addresses of the lamps (microcontrollers attached the lamps)
+uint8_t broadcastAddress2[] = {0xc4, 0x5b, 0xbe, 0x71, 0x5d, 0xaa}; //replace with the MAC addresses of the lamps (microcontrollers attached the lamps)
+uint8_t broadcastAddress3[] = {0xc4, 0x5b, 0xbe, 0x70, 0x58, 0xd8}; //replace with the MAC addresses of the lamps (microcontrollers attached the lamps)
+uint8_t broadcastAddress4[] = {0x30, 0x83, 0x98, 0x82, 0xe8, 0x12}; //replace with the MAC addresses of the lamps (microcontrollers attached the lamps)
 
+int buttonState = 0;
+int preState = 0;
 //place holder variables rn because I don't know what I will need
 typedef struct struct_message {
   int a;
+  int b = 0;
 } struct_message;
 
 struct_message myData;
 
 //callback for when data is sent to see whether data was successful recieved, I will ultimately remove this in the end because serial outputs tend to slow down the program and here timing is very important
 void OnDataSent(uint8_t *mac_addr, uint8_t sendStatus) {
-  //Serial.print("Last Packet Send Status: ");
-  if (sendStatus == 0) {
-    Serial.println("Delivery success");
-  }
-  else {
-    Serial.println("Delivery fail");
-  }
+  char macStr[18];
+  //Serial.print("Packet to:");
+  snprintf(macStr, sizeof(macStr), "%02x:%02x:%02x:%02x:%02x:%02x",
+           mac_addr[0], mac_addr[1], mac_addr[2], mac_addr[3], mac_addr[4], mac_addr[5]);
+  //Serial.print(macStr);
+  //Serial.print(" send status: ");
+  //if (sendStatus == 0) {
+    //Serial.println("Delivery success");
+  //}
+  //else {
+    //Serial.println("Delivery fail");
+  //}
 }
 
-unsigned long prevMillis = 0;
-unsigned long interval = 50;
-unsigned long averageInterval = 25;
-float micVal = 0;
-const int samples = 5;
-int readings[samples];
+unsigned long previousMillis = 0;
+const long interval = 25;
+const int sampleSize = 5;
+int readings[sampleSize];
 int readIndex = 0;
 int total = 0;
-int average = 0;
+int micVal = 0;
+double mean = 0;
 
 void setup() {
+  pinMode(buttonPin, INPUT);
   //Init Serial USB
-  Serial.begin(115200);
+  //Serial.begin(115200);
   //Init Microphone
   pinMode(micPin, INPUT);
   //Enable wifi mode
   WiFi.mode(WIFI_STA);
-  for (int thisReading = 0; thisReading < samples; thisReading++) {
-    readings[thisReading] = 0;
-  }
+
   //check to see if esp-now was initalized correctly
   if (esp_now_init() != 0) {
-    Serial.println("Error initializing ESP-NOW");
+    //Serial.println("Error initializing ESP-NOW");
     return;
   }
 
@@ -56,37 +67,42 @@ void setup() {
   esp_now_set_self_role(ESP_NOW_ROLE_CONTROLLER);
   esp_now_register_send_cb(OnDataSent);
   //Register a peer
-  esp_now_add_peer(broadcastAddress, ESP_NOW_ROLE_SLAVE, 1, NULL, 0);
+  esp_now_add_peer(broadcastAddress1, ESP_NOW_ROLE_SLAVE, 1, NULL, 0);
+  esp_now_add_peer(broadcastAddress2, ESP_NOW_ROLE_SLAVE, 1, NULL, 0);
+  esp_now_add_peer(broadcastAddress3, ESP_NOW_ROLE_SLAVE, 1, NULL, 0);
+  esp_now_add_peer(broadcastAddress4, ESP_NOW_ROLE_SLAVE, 1, NULL, 0);
 }
 
 void loop() {
-  if ((millis() - prevMillis) >= interval) {
+  if ((millis() - previousMillis) >= interval) {
+    buttonState = digitalRead(buttonPin);
+    if (buttonState == HIGH & preState == 0) {
+      myData.b++;
+      preState = 1;
+    } else if (buttonState == LOW) {
+      preState = 0;
+    }
+    if (myData.b >= 7) {
+      myData.b = 0;
+    }
+    micVal = analogRead(micPin);
+    micVal -= 542;
     total = total - readings[readIndex];
-    // read from the sensor:
-    readings[readIndex] = analogRead(micPin);
-    // add the reading to the total:
+    readings[readIndex] = pow(micVal, 2);
     total = total + readings[readIndex];
-    // advance to the next position in the array:
-    readIndex = readIndex + 1;
-
-    // if we're at the end of the array...
-    if (readIndex >= samples) {
-      // ...wrap around to the beginning:
+    readIndex += 1;
+    if (readIndex >= sampleSize) {
       readIndex = 0;
     }
-    // calculate the average:
-    average = total / samples;
-    // send it to the computer as ASCII digits
-    micVal = average;//do you need to pole the sensor even if the data isn't going to be used?
-    //set mic data point to the current value of the mic from the timer sequence
-    myData.a = abs (round (((micVal - bottomLimit) / (topLimit - bottomLimit)) * 144));
+    mean = total / sampleSize;
+    mean = sqrt(mean);
+    myData.a = (mean / topLimit) * NUM_LEDS;
     if (myData.a > 144) {
       myData.a = 144;
     }
     //Serial.println(myData.a);
-    //send the message with ESP-NOW
-    esp_now_send(broadcastAddress, (uint8_t *) &myData, sizeof(myData));
-    prevMillis = millis();
+    esp_now_send(0, (uint8_t *) &myData, sizeof(myData));
+    previousMillis = millis();
     delay(0);
   }
 }

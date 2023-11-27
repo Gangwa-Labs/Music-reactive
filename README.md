@@ -1,10 +1,6 @@
 # TrapJumpers
 Music reactive LED Lamps with perfect diffusion
 
-This project is heavily influenced by another maker who started me on this project, I will link his github below. There were problems with the code that ranged from signals dropping and I generally did not like how the master minion code was set up and I believe it could be improved so here we are.
-
-Nerd Forge Project Github: https://github.com/hansjny/Natural-Nerd/tree/master/SoundReactive2
-
 # Theory
 using an analog Microphone for an arduino you can get a rough guess about the volume levels. Not perfect for music as the bass will heavily override and sound and sometimes vocals will get lost, however its stupid cheap and impresses people who don't pay that much attention, perfect for a party.
 Below is a screenshot of what the analog sesnor reads on the serial plotter:
